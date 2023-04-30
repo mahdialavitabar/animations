@@ -1,5 +1,6 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 
 import star from "../Assets/gold-star-icon.svg";
@@ -17,7 +18,33 @@ const Animations = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("selected");
+  const [modalIsOpen, setIsOpen] = useState(false);
+
   const history = useNavigate();
+
+  const openModal = () => {
+    setIsOpen(true);
+  };
+  const closeModal = () => {
+    setIsOpen(false);
+  };
+  console.log(reviews);
+
+  const handleSortByMostRate = () => {
+    setReviews([]);
+
+    const sortedReviews = reviews.sort((a, b) => {
+      if (a.reviewsRate < b.reviewsRate) {
+        return 1;
+      }
+      if (a.reviewsRate > b.reviewsRate) {
+        return -1;
+      }
+      return 0;
+    });
+    setReviews(sortedReviews);
+  };
+
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -78,7 +105,38 @@ const Animations = () => {
           </div>
           <div className="text-slate-500"> مناسب برای ۳ تا ۷ سال</div>
         </div>
-        <div dir="rtl" className="flex gap-4 items-center">
+        <div>
+          <Modal
+            isOpen={modalIsOpen}
+            onRequestClose={closeModal}
+            shouldCloseOnOverlayClick={true}
+            contentLabel="Example Modal"
+            className="fixed left-1/2 transform -translate-x-1/2 bottom-0 right-au w-[480px] h-[200px] bg-white  p-4 border border-black rounded-lg "
+          >
+            <fieldset className="flex flex-col gap-6">
+              <p className="text-center">مرتب سازی بر اساس</p>
+              <div className="flex gap-4 justify-center">
+                <input
+                  type="radio"
+                  name="rate"
+                  onClick={handleSortByMostRate}
+                />
+
+                <p>بیشترین امتیاز</p>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <input type="radio" name="rate" />
+                <p>بیشترین بازدید</p>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <input type="radio" name="rate" />
+                <p> جدیدترین</p>
+              </div>
+            </fieldset>
+          </Modal>
+        </div>
+        <button onClick={openModal}>مرتب سازی</button>
+        {/* <div dir="rtl" className="flex gap-4 items-center">
           <select
             value={sortBy}
             onChange={handleSortByChange}
@@ -96,7 +154,7 @@ const Animations = () => {
             <option value="view">بازدید </option>
             <option value="rate">امتیاز</option>
           </select>
-        </div>
+        </div> */}
       </div>
       <div className="grid grid-cols-2 text-center text-sm ">
         {reviews.map((review: any) => (
