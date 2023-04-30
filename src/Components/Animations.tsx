@@ -79,7 +79,11 @@ const Animations = () => {
           <div className="text-slate-500"> مناسب برای ۳ تا ۷ سال</div>
         </div>
         <div dir="rtl" className="flex gap-4 items-center">
-          <select value={sortBy} onChange={handleSortByChange}>
+          <select
+            value={sortBy}
+            onChange={handleSortByChange}
+            className="border border-black rounded-lg"
+          >
             <option
               value="selected"
               defaultChecked={true}
