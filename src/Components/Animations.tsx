@@ -11,15 +11,21 @@ type Review = {
   reviewsTitle: string;
   reviewsRate: number;
   reviewsThumbnailUrl: string;
+  viewsCount: number;
+  reviewsModifiedTime: string;
 };
 
 const Animations = () => {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [items, setItems] = useState([]);
+  const [metaData, setMetaData] = useState({
+    pageDescription: "",
+    pageTitle: "",
+  });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState("selected");
   const [modalIsOpen, setIsOpen] = useState(false);
 
+  const [sort, setSort] = useState("newest");
   const history = useNavigate();
 
   const openModal = () => {
@@ -28,30 +34,25 @@ const Animations = () => {
   const closeModal = () => {
     setIsOpen(false);
   };
-  console.log(reviews);
-
-  const handleSortByMostRate = () => {
-    setReviews([]);
-
-    const sortedReviews = reviews.sort((a, b) => {
-      if (a.reviewsRate < b.reviewsRate) {
-        return 1;
-      }
-      if (a.reviewsRate > b.reviewsRate) {
-        return -1;
-      }
-      return 0;
-    });
-    setReviews(sortedReviews);
+  const handleChangeSort = (sort: any) => {
+    setSort(sort);
   };
 
   const fetchReviews = async () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `https://kodoumo.ir/wp-json/api/v2/reviews-category/animations?page=${page}&sortby=${sortBy}`
+        `https://kodoumo.ir/wp-json/api/v2/reviews-category/animations?page=${page}&sortby=${sort}`
       );
-      setReviews((prevReviews) => [...prevReviews, ...response.data.data]);
+      const { pageDescription, pageTitle } = response.data;
+      setMetaData({ pageDescription: pageDescription, pageTitle: pageTitle });
+      setItems((prevReviews) =>
+        page === 1
+          ? response.data.data
+          : [...prevReviews, ...response.data.data]
+      );
+      console.log(response);
+
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -60,7 +61,12 @@ const Animations = () => {
 
   useEffect(() => {
     fetchReviews();
-  }, [page, sortBy]);
+    console.log(sort);
+  }, [page, sort]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [sort]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,21 +81,13 @@ const Animations = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loading]);
 
-  const handleSortByChange = (event: any) => {
-    setSortBy(event.target.value);
-    setPage(1);
-    setReviews([]);
-  };
   const handleGoBack = () => {
     history(-1);
   };
-  // const handleLoadMore = () => {
-  //   setPage((prevPage) => prevPage + 1);
-  // };
 
   return (
     <div
-      className="max-w-[480px] p-4"
+      className="max-w-[480px] p-4 border border-gray-300  shadow-2xl"
       style={{ maxWidth: "480px", margin: "auto" }}
     >
       <div
@@ -101,9 +99,9 @@ const Animations = () => {
       <div className="flex justify-between m-4 ">
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-2xl">چیارو ببینه؟</p>
+            <p className="text-2xl">{metaData.pageTitle}</p>
           </div>
-          <div className="text-slate-500"> مناسب برای ۳ تا ۷ سال</div>
+          <div className="text-slate-500">{metaData.pageDescription}</div>
         </div>
         <div>
           <Modal
@@ -118,47 +116,36 @@ const Animations = () => {
               <div className="flex gap-4 justify-center">
                 <input
                   type="radio"
-                  name="rate"
-                  onClick={handleSortByMostRate}
+                  onChange={() => handleChangeSort("rate")}
+                  checked={sort === "rate"}
                 />
 
                 <p>بیشترین امتیاز</p>
               </div>
               <div className="flex gap-4 justify-center">
-                <input type="radio" name="rate" />
+                <input
+                  type="radio"
+                  onChange={() => handleChangeSort("view")}
+                  checked={sort === "view"}
+                />
                 <p>بیشترین بازدید</p>
               </div>
               <div className="flex gap-4 justify-center">
-                <input type="radio" name="rate" />
+                <input
+                  type="radio"
+                  onChange={() => handleChangeSort("newest")}
+                  checked={sort === "newest"}
+                />
                 <p> جدیدترین</p>
               </div>
             </fieldset>
           </Modal>
         </div>
         <button onClick={openModal}>مرتب سازی</button>
-        {/* <div dir="rtl" className="flex gap-4 items-center">
-          <select
-            value={sortBy}
-            onChange={handleSortByChange}
-            className="border border-black rounded-lg"
-          >
-            <option
-              value="selected"
-              defaultChecked={true}
-              disabled
-              selected={true}
-            >
-              مرتب سازی
-            </option>
-            <option value="newest">تازه ترین</option>
-            <option value="view">بازدید </option>
-            <option value="rate">امتیاز</option>
-          </select>
-        </div> */}
       </div>
       <div className="grid grid-cols-2 text-center text-sm ">
-        {reviews.map((review: any) => (
-          <div key={review.id} className="review-card">
+        {items.map((review: any, idx) => (
+          <div key={idx} className="review-card">
             <img
               src={review.reviewsThumbnailUrl}
               className="rounded-lg shadow-lg"
@@ -176,11 +163,6 @@ const Animations = () => {
           در حال بارگذاری
         </div>
       )}
-      {/* {!loading && (
-        <button onClick={handleLoadMore} className="bg-black text-white">
-          بیشتر...
-        </button>
-      )} */}
     </div>
   );
 };
