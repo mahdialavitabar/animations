@@ -6,15 +6,6 @@ import { useNavigate } from "react-router-dom";
 import star from "../Assets/gold-star-icon.svg";
 import { toFarsiNumber } from "../Utils/useNumberToPersian";
 
-type Review = {
-  id: number;
-  reviewsTitle: string;
-  reviewsRate: number;
-  reviewsThumbnailUrl: string;
-  viewsCount: number;
-  reviewsModifiedTime: string;
-};
-
 const Animations = () => {
   const [items, setItems] = useState([]);
   const [metaData, setMetaData] = useState({
